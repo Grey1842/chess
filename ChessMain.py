@@ -120,18 +120,69 @@ def showMenu(screen):
                     IMAGES['bp'], IMAGES['bR'], IMAGES['bN'], 
                     IMAGES['bB'], IMAGES['bK'], IMAGES['bQ']]
     
-    # Initialize 20 random pieces with random positions and velocities
-    for _ in range(20):
-        piece = {
-            'img': random.choice(piece_images),
-            'x': random.randint(0, screen_width),
-            'y': random.randint(0, screen_height),
-            'vx': random.uniform(-0.5, 0.5),
-            'vy': random.uniform(-0.5, 0.5),
-            'rot': random.randint(0, 360),
-            'rot_speed': random.uniform(-1, 1)
-        }
-        animated_pieces.append(piece)
+    # Function to initialize animated pieces with improved distribution
+    def create_animated_pieces(width, height, count=20):
+        # Create a grid to ensure better distribution
+        grid_cells_x = 8
+        grid_cells_y = 6
+        grid_width = width / grid_cells_x
+        grid_height = height / grid_cells_y
+        
+        pieces = []
+        
+        # First, distribute pieces in a grid to avoid clustering
+        for i in range(min(count, grid_cells_x * grid_cells_y)):
+            grid_x = i % grid_cells_x
+            grid_y = i // grid_cells_x
+            
+            # Add randomness within each grid cell
+            x = grid_x * grid_width + random.uniform(0.2, 0.8) * grid_width
+            y = grid_y * grid_height + random.uniform(0.2, 0.8) * grid_height
+            
+            # Create more variety in movement patterns
+            vx = random.uniform(-0.4, 0.4)
+            vy = random.uniform(-0.4, 0.4)
+            
+            # Ensure minimum speed to avoid stationary pieces
+            if abs(vx) < 0.05: vx = 0.05 * (1 if vx >= 0 else -1)
+            if abs(vy) < 0.05: vy = 0.05 * (1 if vy >= 0 else -1)
+            
+            piece = {
+                'img': random.choice(piece_images),
+                'x': x,
+                'y': y,
+                'vx': vx,
+                'vy': vy,
+                'rot': random.randint(0, 360),
+                'rot_speed': random.uniform(-0.8, 0.8),
+                'scale': random.uniform(0.8, 1.2),  # Vary the size
+                'alpha': random.randint(70, 120)    # Vary the transparency
+            }
+            pieces.append(piece)
+        
+        # Add any remaining pieces randomly
+        for i in range(grid_cells_x * grid_cells_y, count):
+            piece = {
+                'img': random.choice(piece_images),
+                'x': random.uniform(0, width),
+                'y': random.uniform(0, height),
+                'vx': random.uniform(-0.4, 0.4),
+                'vy': random.uniform(-0.4, 0.4),
+                'rot': random.randint(0, 360),
+                'rot_speed': random.uniform(-0.8, 0.8),
+                'scale': random.uniform(0.8, 1.2),
+                'alpha': random.randint(70, 120)
+            }
+            # Ensure minimum speed
+            if abs(piece['vx']) < 0.05: piece['vx'] = 0.05 * (1 if piece['vx'] > 0 else -1)
+            if abs(piece['vy']) < 0.05: piece['vy'] = 0.05 * (1 if piece['vy'] > 0 else -1)
+            pieces.append(piece)
+        
+        return pieces
+    
+    # Initialize animated pieces based on screen size
+    piece_count = max(20, min(48, (screen_width * screen_height) // 15000))
+    animated_pieces = create_animated_pieces(screen_width, screen_height, count=piece_count)
     
     # Main menu loop
     running = True
@@ -157,6 +208,10 @@ def showMenu(screen):
                 pvp_button = p.Rect(screen_center_x - button_width // 2, screen_center_y - button_spacing - button_height, button_width, button_height)
                 aivp_white_button = p.Rect(screen_center_x - button_width // 2, screen_center_y, button_width, button_height)
                 aivp_black_button = p.Rect(screen_center_x - button_width // 2, screen_center_y + button_spacing + button_height, button_width, button_height)
+                
+                # Reinitialize animated pieces for the new screen size
+                piece_count = max(20, min(48, (screen_width * screen_height) // 15000))
+                animated_pieces = create_animated_pieces(screen_width, screen_height, count=piece_count)
             
             if event.type == p.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
@@ -187,26 +242,47 @@ def showMenu(screen):
             piece['y'] += piece['vy']
             piece['rot'] += piece['rot_speed']
             
-            # Wrap around screen
-            if piece['x'] < -50:
-                piece['x'] = screen_width + 50
-            elif piece['x'] > screen_width + 50:
-                piece['x'] = -50
+            # Occasionally change direction slightly for more natural movement
+            if random.random() < 0.01:  # 1% chance each frame
+                piece['vx'] += random.uniform(-0.1, 0.1)
+                piece['vy'] += random.uniform(-0.1, 0.1)
+                # Keep speed within limits
+                max_speed = 0.6
+                if abs(piece['vx']) > max_speed:
+                    piece['vx'] = max_speed * (1 if piece['vx'] > 0 else -1)
+                if abs(piece['vy']) > max_speed:
+                    piece['vy'] = max_speed * (1 if piece['vy'] > 0 else -1)
             
-            if piece['y'] < -50:
-                piece['y'] = screen_height + 50
-            elif piece['y'] > screen_height + 50:
-                piece['y'] = -50
+            # Wrap around screen with fixed margin
+            margin = 50
+            if piece['x'] < -margin:
+                piece['x'] = screen_width + margin
+                # Randomize Y position when wrapping horizontally to avoid repetitive patterns
+                piece['y'] = random.uniform(0, screen_height)
+            elif piece['x'] > screen_width + margin:
+                piece['x'] = -margin
+                piece['y'] = random.uniform(0, screen_height)
+            
+            if piece['y'] < -margin:
+                piece['y'] = screen_height + margin
+                # Randomize X position when wrapping vertically
+                piece['x'] = random.uniform(0, screen_width)
+            elif piece['y'] > screen_height + margin:
+                piece['y'] = -margin
+                piece['x'] = random.uniform(0, screen_width)
         
         # Draw everything
         screen.fill(MENU_BG)
         
         # Draw animated background pieces with rotation and transparency
         for piece in animated_pieces:
-            # Create a rotated copy of the piece image
-            rotated_image = p.transform.rotate(piece['img'], piece['rot'])
+            # Create a rotated and scaled copy of the piece image
+            piece_img = p.transform.scale(piece['img'], 
+                                         (int(piece['img'].get_width() * piece['scale']), 
+                                          int(piece['img'].get_height() * piece['scale'])))
+            rotated_image = p.transform.rotate(piece_img, piece['rot'])
             # Add transparency
-            rotated_image.set_alpha(100)
+            rotated_image.set_alpha(piece['alpha'])
             # Get the rect for the rotated image
             rect = rotated_image.get_rect(center=(piece['x'], piece['y']))
             # Draw the piece
@@ -849,7 +925,8 @@ def drawBoard(screen):
     Top left square is always light.
     """
     global colors
-    colors = [p.Color("white"), p.Color("gray")]
+    # More vibrant colors: light cream and rich brown
+    colors = [p.Color(240, 217, 181), p.Color(181, 136, 99)]
     for row in range(DIMENSION):
         for column in range(DIMENSION):
             color = colors[((row + column) % 2)]

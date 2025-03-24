@@ -19,6 +19,16 @@ A beautiful, feature-rich chess game built with Python and Pygame, offering both
 - ↩️ Move undo capability
 - 📏 Responsive design that adapts to window resizing
 
+## 📸 Screenshots
+
+### Game Board
+![Chess Game Board](screenshots/game_board.png)
+*The main chess board with timers and control buttons*
+
+### Main Menu
+![Game Menu](screenshots/game_menu.png)
+*Stylish retro-themed main menu with game mode selection*
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -69,15 +79,6 @@ When a game ends (checkmate or stalemate), you can:
 - View the result
 - Click the "REPLAY GAME" button to watch a replay of the entire game
 - Start a new game by clicking any of the control buttons
-
-## 📸 Screenshots
-
-*[Place screenshots here showing:]*
-- *Main menu*
-- *Game board during play*
-- *Pawn promotion dialog*
-- *Game over screen*
-- *Replay mode*
 
 ## 🗂️ Project Structure
 
