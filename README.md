@@ -23,10 +23,12 @@ A beautiful, feature-rich chess game built with Python and Pygame, offering both
 
 ### Game Board
 ![Chess Game Board](screenshots/game_board.png)
+
 *The main chess board with timers and control buttons*
 
 ### Main Menu
 ![Game Menu](screenshots/game_menu.png)
+
 *Stylish retro-themed main menu with game mode selection*
 
 ## 🚀 Getting Started
@@ -125,4 +127,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-*Made with ♟️ by [Your Name]* 
+*Made with Pygame by Shashi Bhushan Kumar* 
